@@ -2,6 +2,11 @@
 using MongoDB.Bson;
 using MongoDB.Driver.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Timers;
+using System.Data.SqlClient;
 
 namespace Study_App_API.MongoDB_Commands
 {
@@ -9,73 +14,79 @@ namespace Study_App_API.MongoDB_Commands
 
     public class Project_Commands
     {
-        IMongoDatabase mongo;
-        public Project_Commands(string ConnectionString)
-        {
 
+        string USER_COLLECTION;
+        string NOTE_COLLECTION;
+        string FILE_COLLECTION;
+
+        public Project_Commands()
+        {
+         
         }
 
-        public void  DeleteFile(string Id)
-        {
-            throw new NotImplementedException();
-        }
-        public void DeleteNote(string Id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CreateFile(string Id)
+        public static void DeleteFile(string guid)
         {
             throw new NotImplementedException();
         }
 
-        public void UploadFile(string File)
-        {
-            throw new NotImplementedException();
-        }
-        public void CreateUser(string User)
+        public static BsonDocument DeleteNote(string guid)
         {
             throw new NotImplementedException();
         }
 
-        public void CreateGoals(string Goal)
+        public static void CreateNote(BsonDocument Note)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public static void UploadFile(BsonDocument File)
         {
             throw new NotImplementedException();
         }
 
-        public void MarkGoalAsComplete(string Goal)
+        public static void CreateUser(BsonDocument User)
         {
             throw new NotImplementedException();
         }
 
-        public void AuthenticateUser(string AuthUser) {
-            throw new NotImplementedException();
-        } 
-
-        public void ShareFile(String Id, String Dictionary)
+        public static void CreateGoal(BsonDocument Goal, string Username)
         {
             throw new NotImplementedException();
         }
 
-        public void GetUser(String Username)
+        public static void MarkGoalAsComplete(string guid, string Username)
         {
             throw new NotImplementedException();
         }
 
-        public void GetUpComingGoals(string Username)
+        public static bool AuthenticateUser(string Username, string Password)
         {
             throw new NotImplementedException();
         }
 
-        public void GetFilePreviews(string Username)
+        public static void ShareFile(string guid, Dictionary<BsonDocument, BsonDocument> Sharers)
         {
             throw new NotImplementedException();
         }
 
-        public void GetCollections(string Collection)
+        public static BsonDocument GetUser(string Username)
         {
             throw new NotImplementedException();
         }
 
+        public static IMongoCollection<BsonDocument> GetUpcomingGoals(string Username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static IMongoCollection<BsonDocument> GetFilePreviews(string Username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static IMongoCollection<BsonDocument> GetCollection(string collection)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
