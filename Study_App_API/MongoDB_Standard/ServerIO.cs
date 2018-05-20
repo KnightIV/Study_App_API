@@ -104,9 +104,13 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public static BsonDocument GetUser(string Username)
+        public static BsonDocument GetUser(string userName)
         {
-            throw new NotImplementedException();
+
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("Username", userName);
+            var user = userCollection.Find(getUserFilter).First();
+            return user;
         }
 
 
