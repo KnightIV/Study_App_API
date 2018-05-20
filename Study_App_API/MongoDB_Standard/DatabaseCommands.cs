@@ -10,7 +10,7 @@ using System.Data.SqlClient;
 
 namespace Study_App_API.MongoDB_Commands
 {
-    public class Database_Command
+    public class DatabaseCommand
     {
 
         string ConnectionString = null;
@@ -18,7 +18,7 @@ namespace Study_App_API.MongoDB_Commands
         MongoServer server = null;
         MongoClient client = null;
 
-        public Database_Command(string DatabaseName)
+        public DatabaseCommand(string DatabaseName)
         {
             Start_Mongo_Connection(DatabaseName);
         }
