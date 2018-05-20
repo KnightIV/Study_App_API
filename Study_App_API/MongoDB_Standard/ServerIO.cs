@@ -13,7 +13,7 @@ namespace Study_App_API.MongoDB_Commands
     public class ServerIO
     {
 
-        const string USER_COLLECTION = "User";
+        const string USER_COLLECTION = "UserAccount";
         const string NOTE_COLLECTION = "Note";
         const string FILE_COLLECTION = "File";
 
@@ -23,15 +23,15 @@ namespace Study_App_API.MongoDB_Commands
         public static void DeleteFile(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
-            FilterDefinition<BsonDocument> chatIDFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
-            fileCollection.DeleteOne(chatIDFilter);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+            fileCollection.DeleteOne(deleteFileFilter);
 
         }
         public static void DeleteNote(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
-            FilterDefinition<BsonDocument> chatIDFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
-            fileCollection.DeleteOne(chatIDFilter);
+            FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+            fileCollection.DeleteOne(deleteNoteFilter);
         }
         public static void CreateNote(BsonDocument note)
         {
@@ -53,12 +53,43 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.InsertOne(User);
         }
 
-        public static void CreateGoal(BsonDocument Goal, string Username)
+        public static void CreateGoal(BsonDocument goal, string username)
         {
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+           
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("Username", username);
+
+
+            BsonArray dataFields = new BsonArray { goal };
+            UpdateDefinition<BsonDocument> update = new BsonDocument("$set", new BsonDocument { { "ListOfGoals", dataFields } });
+
+
+            Console.WriteLine("Usernam Filter: " + getUserFilter);
+
+
+            userCollection.UpdateOne(getUserFilter, update, new UpdateOptions { IsUpsert = true });
+
+        }
+
+        public void AddUserToFileDictionary(string fileGuid, string username, string permissionType)
+        {
+            //adds user to the Users dictionary on File Collection
             throw new NotImplementedException();
         }
 
-        public static void MarkGoalAsComplete(string guid, string Username)
+        public void RemoveUserFromFileDictionary(string fileGuid, string removingUsername)
+        {
+            //edit dictionary to remove that user from the file--- file collections
+            throw new NotImplementedException();
+        }
+
+        public void ChangePermissionForUser(string fileGuid, string username, string permissionType)
+        {
+            //edit the permission type for that user
+            throw new NotImplementedException();
+        }
+
+        public static void MarkGoalAsComplete(string goalGuid, string Username)
         {
             throw new NotImplementedException();
         }
