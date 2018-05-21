@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Timers;
 using System.Data.SqlClient;
+using MongoDB_Standard.models;
 
 namespace Study_App_API.MongoDB_Commands
 {
@@ -33,34 +34,39 @@ namespace Study_App_API.MongoDB_Commands
             FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
             fileCollection.DeleteOne(deleteNoteFilter);
         }
-        public static void CreateNote(BsonDocument note)
+        public static void CreateNote(Note note)
         {
+            BsonDocument bnote = note.ToBsonDocument();
             IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
 
-            noteCollection.InsertOne(note);
+            noteCollection.InsertOne(bnote);
         }
-        public static void UploadFile(BsonDocument file)
+        public static void UploadFile(File file)
         {
+            BsonDocument bfile = file.ToBsonDocument();
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
 
-            fileCollection.InsertOne(file);
+            fileCollection.InsertOne(bfile);
         }
 
-        public static void CreateUser(BsonDocument User)
+        public static void CreateUser(UserAccount user)
         {
+            BsonDocument bUserAccount = user.ToBsonDocument();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
 
-            userCollection.InsertOne(User);
+            userCollection.InsertOne(bUserAccount);
         }
 
-        public static void CreateGoal(BsonDocument goal, string username)
+        public static void CreateGoal(Goal goal, string username)
+    
         {
+            BsonDocument bgoal = goal.ToBsonDocument();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
            
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("Username", username);
 
 
-            BsonArray dataFields = new BsonArray { goal };
+            BsonArray dataFields = new BsonArray { bgoal };
             UpdateDefinition<BsonDocument> update = new BsonDocument("$set", new BsonDocument { { "ListOfGoals", dataFields } });
 
 
@@ -69,24 +75,6 @@ namespace Study_App_API.MongoDB_Commands
 
             userCollection.UpdateOne(getUserFilter, update, new UpdateOptions { IsUpsert = true });
 
-        }
-
-        public void AddUserToFileDictionary(string fileGuid, string username, string permissionType)
-        {
-            //adds user to the Users dictionary on File Collection
-            throw new NotImplementedException();
-        }
-
-        public void RemoveUserFromFileDictionary(string fileGuid, string removingUsername)
-        {
-            //edit dictionary to remove that user from the file--- file collections
-            throw new NotImplementedException();
-        }
-
-        public void ChangePermissionForUser(string fileGuid, string username, string permissionType)
-        {
-            //edit the permission type for that user
-            throw new NotImplementedException();
         }
 
         public static void MarkGoalAsComplete(string goalGuid, string Username)
@@ -99,7 +87,7 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public static void ShareFile(string guid, Dictionary<BsonDocument, BsonDocument> Sharers)
+        public static void ShareFile(string guid, Dictionary<string, Permission> Sharers)
         {
             throw new NotImplementedException();
         }
