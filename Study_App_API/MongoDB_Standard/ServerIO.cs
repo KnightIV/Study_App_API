@@ -8,6 +8,7 @@ using System.Text;
 using System.Timers;
 using System.Data.SqlClient;
 using MongoDB_Standard.models;
+using MongoDB.Bson.Serialization;
 
 namespace Study_App_API.MongoDB_Commands
 {
@@ -92,13 +93,48 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public static BsonDocument GetUser(string userName)
+        public UserAccount GetUser(string userName)
         {
-
+            Console.WriteLine("Started method..." + " " + userName);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("Username", userName);
-            var user = userCollection.Find(getUserFilter).First();
-            return user;
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", userName);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+            var userGoalsList = user["ListOfGoals"].AsBsonArray;
+            var userFilesList = user["ListOfFiles"].AsBsonValue;
+            var userNotesList = user["ListOfNotes"].AsBsonValue;
+            var username = user["UserName"].AsBsonValue;
+            var phoneNumber = user["PhoneNumber"].AsBsonValue;
+            var email = user["Email"].AsBsonValue;
+
+            List<Goal> listOfGoals = new List<Goal>();
+
+
+            foreach (var element in userGoalsList)
+            {
+                Goal g = null;
+                var type = element["_t"].AsString;
+                if (type == "NonRecurringGoal")
+                {
+                    g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
+                }
+                else if (type == "RecurringGoal")
+                {
+                    g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
+                }
+                listOfGoals.Add(g);
+            }
+
+            List<File> listOfFiles = BsonSerializer.Deserialize<List<File>>(userFilesList.ToJson());
+            List<Note> listOfNotes = BsonSerializer.Deserialize<List<Note>>(userNotesList.ToJson());
+            string usernameStr = BsonSerializer.Deserialize<string>(username.ToJson());
+            string phoneNumberStr = BsonSerializer.Deserialize<string>(phoneNumber.ToJson());
+            string emailStr = BsonSerializer.Deserialize<string>(email.ToJson());
+
+            UserAccount userAccount = new UserAccount() { ListOfGoals = listOfGoals, ListOfFiles = listOfFiles, ListOfNotes = listOfNotes, UserName = usernameStr, PhoneNumber = phoneNumberStr, Email = emailStr};
+            
+
+            return userAccount;
         }
 
 
