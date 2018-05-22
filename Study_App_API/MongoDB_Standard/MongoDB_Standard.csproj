@@ -69,6 +69,7 @@
     <Compile Include="models\File.cs" />
     <Compile Include="models\FileMini.cs" />
     <Compile Include="models\Goal.cs" />
+    <Compile Include="models\LoginUser.cs" />
     <Compile Include="models\Month.cs" />
     <Compile Include="models\NonRecurringGoal.cs" />
     <Compile Include="models\Note.cs" />

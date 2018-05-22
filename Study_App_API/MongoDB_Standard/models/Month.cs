@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoDB_Standard.models {
 
@@ -11,6 +12,7 @@ namespace MongoDB_Standard.models {
         public List<Day> Days { get; set; }
         public int MonthOfYear { get; set; }
 
+        [BsonIgnore]
         public string MonthName {
             get {
                 switch (MonthOfYear) {
