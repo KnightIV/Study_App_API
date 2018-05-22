@@ -44,18 +44,42 @@ namespace Study_App_API.MongoDB_Commands
         }
         public void UploadFile(File file)
         {
-            BsonDocument bfile = file.ToBsonDocument();
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> getFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", file.GUID);
+            Dictionary<string, Permission> fileUsers = new Dictionary<string, Permission>();
 
-            fileCollection.InsertOne(bfile);
-        }
 
-        public void CreateUser(UserAccount user)
-        {
-            BsonDocument bUserAccount = user.ToBsonDocument();
-            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            foreach (KeyValuePair<string, Permission> entry in file.Users)
+            {
+                string currentAccount = entry.Key;
+                Permission currentPermission = entry.Value;
+                fileUsers.Add(currentAccount, currentPermission);
 
-            userCollection.InsertOne(bUserAccount);
+            }
+
+            byte[] fileContent = file.Content;
+            string guid = file.GUID;
+            string extension = file.Extension;
+            string fileName = file.Name;
+
+            string guidDoc = BsonSerializer.Deserialize<string>(guid.ToJson());
+            string extensionDoc = BsonSerializer.Deserialize<string>(extension.ToJson());
+            string nameDoc = BsonSerializer.Deserialize<string>(fileName.ToJson());
+
+            Dictionary<UserAccount, Permission> users = new Dictionary<UserAccount, Permission>();
+            BsonDocument bsonDoc = users.ToBsonDocument();
+            byte[] content = new byte[10];
+
+            BsonDocument bFileFormat = new BsonDocument
+            {
+              {"Users", fileUsers.ToBsonDocument()},
+              {"GUID", guidDoc},
+              {"Content", fileContent.ToBsonDocument()},
+              {"Extension", extensionDoc},
+              {"Name", nameDoc}
+            };
+
+            fileCollection.InsertOne(bFileFormat);
         }
 
         public void CreateGoal(Goal goal, string username)
