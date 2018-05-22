@@ -15,5 +15,7 @@ namespace MongoDB_Standard.models {
         public string Name { get; set; }
         public Dictionary<UserAccount, Permission> Users { get; set; }
         public byte[] Content { get; set; }
+
+        public static implicit operator FileMini(File f) => new FileMini() { GUID = f.GUID, Extension = f.Extension, Name = f.Name };
     }
 }

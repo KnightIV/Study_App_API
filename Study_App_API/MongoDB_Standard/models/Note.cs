@@ -21,5 +21,7 @@ namespace MongoDB_Standard.models {
         }
 
         public Note() { }
+
+        public static implicit operator NoteMini(Note n) => new NoteMini(n.Title, n.GUID);
     }
 }
