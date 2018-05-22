@@ -31,5 +31,26 @@ namespace Study_App_API.Controllers {
             UserAccount user = serverInterface.GetUser(username);
             return Json(user.ListOfGoals.SingleOrDefault(g => g.GUID == guid), JsonRequestBehavior.AllowGet);
         }
+
+        [System.Web.Mvc.HttpGet]
+        public JsonResult GetUpcomingRecurringGoals(string username, DateTime curDate) {
+            // TODO: fix return type of serverInterface.GetUpcomingGoals()
+            List<Goal> upcomingGoals = (List<Goal>) serverInterface.GetUpcomingGoals(username, curDate);
+            return Json(upcomingGoals.Where(g => g is RecurringGoal).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [System.Web.Mvc.HttpGet]
+        public JsonResult GetUpcomingNonRecurringGoals(string username, DateTime curDate) {
+            // TODO: fix return type of serverInterface.GetUpcomingGoals()
+            List<Goal> upcomingGoals = (List<Goal>) serverInterface.GetUpcomingGoals(username, curDate);
+            return Json(upcomingGoals.Where(g => g is NonRecurringGoal).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [System.Web.Mvc.HttpGet]
+        public JsonResult GetOverdueGoals(string username, DateTime curDate) {
+            UserAccount user = serverInterface.GetUser(username);
+            List<Goal> overdueGoals = user.ListOfGoals.Where(g => g is NonRecurringGoal && g.Deadline < curDate).ToList();
+            return Json(overdueGoals, JsonRequestBehavior.AllowGet);
+        }
     }
 }
