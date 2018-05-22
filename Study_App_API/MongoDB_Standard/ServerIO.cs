@@ -104,26 +104,15 @@ namespace Study_App_API.MongoDB_Commands
         public void MarkGoalAsComplete(string goalGuid, string username)
         {
 
-            UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
-
             BsonType typeOfGoal = user["ListOfGoals"].BsonType;
             List<Goal> listOfGoals = new List<Goal>();
+
             if (typeOfGoal != BsonType.Null)
             {
                 var userGoalsList = user["ListOfGoals"].AsBsonArray;
-
-                var query = MongoDB.Driver.Builders.Query.EQ("ListOfGoals", "123");
-                var sortBy = MongoDB.Driver.Builders.SortBy.Null;
-                var update = MongoDB.Driver.Builders.Update.Inc("LoginCount", 1).Set("LastLogin", DateTime.UtcNow); // some update, you can chain a series of update commands here
-
-                MongoCollection<UserAccount>.FindAndModify(query, sortBy, update);
-
-
-
-
                 Console.WriteLine("Goals List is not null");
 
                 foreach (var element in userGoalsList)
@@ -133,21 +122,29 @@ namespace Study_App_API.MongoDB_Commands
                     if (type == "NonRecurringGoal")
                     {
                         g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
+                        if (g.GUID.Equals(goalGuid))
+                        {
+                            Console.WriteLine("Matched non recurring goal");
+                            g.Completed = true;
+                        }
                     }
                     else if (type == "RecurringGoal")
                     {
                         g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
+                        if (g.GUID.Equals(goalGuid))
+                        {
+                            Console.WriteLine("Matched recurring goal");
+                            g.Completed = true;
+                        }
                     }
                     listOfGoals.Add(g);
                 }
-                
+
+                UserAccount updatedAccount = GetUser(username);
+                userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+                updatedAccount.ListOfGoals = listOfGoals;
+                userCollection.InsertOne(updatedAccount.ToBsonDocument());
             }
-
-            
-
-
-
-            throw new NotImplementedException();
         }
 
         public bool AuthenticateUser(string Username, string Password)
