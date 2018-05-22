@@ -101,8 +101,52 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.InsertOne(updatedAccount.ToBsonDocument());
         }
 
-        public void MarkGoalAsComplete(string goalGuid, string Username)
+        public void MarkGoalAsComplete(string goalGuid, string username)
         {
+
+            UserAccount account = GetUser(username);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+            BsonType typeOfGoal = user["ListOfGoals"].BsonType;
+            List<Goal> listOfGoals = new List<Goal>();
+            if (typeOfGoal != BsonType.Null)
+            {
+                var userGoalsList = user["ListOfGoals"].AsBsonArray;
+
+                var query = MongoDB.Driver.Builders.Query.EQ("ListOfGoals", "123");
+                var sortBy = MongoDB.Driver.Builders.SortBy.Null;
+                var update = MongoDB.Driver.Builders.Update.Inc("LoginCount", 1).Set("LastLogin", DateTime.UtcNow); // some update, you can chain a series of update commands here
+
+                MongoCollection<UserAccount>.FindAndModify(query, sortBy, update);
+
+
+
+
+                Console.WriteLine("Goals List is not null");
+
+                foreach (var element in userGoalsList)
+                {
+                    Goal g = null;
+                    var type = element["_t"].AsString;
+                    if (type == "NonRecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
+                    }
+                    else if (type == "RecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
+                    }
+                    listOfGoals.Add(g);
+                }
+                
+            }
+
+            
+
+
+
             throw new NotImplementedException();
         }
 
