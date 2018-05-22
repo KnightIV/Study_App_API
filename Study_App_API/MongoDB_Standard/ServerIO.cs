@@ -154,8 +154,9 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public void ShareFile(string guid, Dictionary<string, Permission> Sharers)
+        public void ShareFile(string guid, Dictionary<UserAccount, Permission> sharers)
         {
+            Console.WriteLine("File ID: " + guid);
             throw new NotImplementedException();
         }
 
