@@ -59,23 +59,46 @@ namespace Study_App_API.MongoDB_Commands
         }
 
         public void CreateGoal(Goal goal, string username)
-    
+
         {
-            BsonDocument bgoal = goal.ToBsonDocument();
+            UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-           
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("Username", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
 
 
-            BsonArray dataFields = new BsonArray { bgoal };
-            UpdateDefinition<BsonDocument> update = new BsonDocument("$set", new BsonDocument { { "ListOfGoals", dataFields } });
+            BsonType typeOfGoal = user["ListOfGoals"].BsonType;
+            List<Goal> listOfGoals = new List<Goal>();
+            if (typeOfGoal != BsonType.Null)
+            {
+                var userGoalsList = user["ListOfGoals"].AsBsonArray;
+                Console.WriteLine("Goals List is not null");
 
+                foreach (var element in userGoalsList)
+                {
+                    Goal g = null;
+                    var type = element["_t"].AsString;
+                    if (type == "NonRecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
+                    }
+                    else if (type == "RecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
+                    }
+                    listOfGoals.Add(g);
+                }
+                listOfGoals.Add(goal);
+            }
+            else
+            {
+                listOfGoals.Add(goal);
+            }
 
-            Console.WriteLine("Usernam Filter: " + getUserFilter);
-
-
-            userCollection.UpdateOne(getUserFilter, update, new UpdateOptions { IsUpsert = true });
-
+            UserAccount updatedAccount = GetUser(username);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfGoals = listOfGoals;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
         }
 
         public void MarkGoalAsComplete(string goalGuid, string Username)
@@ -101,41 +124,44 @@ namespace Study_App_API.MongoDB_Commands
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", userName);
             BsonDocument user = userCollection.Find(getUserFilter).First();
+            BsonType typeOfGoal = user["ListOfGoals"].AsBsonValue.BsonType;
 
-            var userGoalsList = user["ListOfGoals"].AsBsonArray;
+            List<Goal> listOfGoals = new List<Goal>();
+            if (typeOfGoal != BsonType.Null)
+            {
+                var userGoalsList = user["ListOfGoals"].AsBsonArray;
+
+                foreach (var element in userGoalsList)
+                {
+                    Goal g = null;
+                    var type = element["_t"].AsString;
+                    if (type == "NonRecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
+                    }
+                    else if (type == "RecurringGoal")
+                    {
+                        g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
+                    }
+                    listOfGoals.Add(g);
+                }
+            }
+            else
+            {
+                listOfGoals = null;
+            }
             var userFilesList = user["ListOfFiles"].AsBsonValue;
             var userNotesList = user["ListOfNotes"].AsBsonValue;
             var username = user["UserName"].AsBsonValue;
             var phoneNumber = user["PhoneNumber"].AsBsonValue;
             var email = user["Email"].AsBsonValue;
-
-            List<Goal> listOfGoals = new List<Goal>();
-
-
-            foreach (var element in userGoalsList)
-            {
-                Goal g = null;
-                var type = element["_t"].AsString;
-                if (type == "NonRecurringGoal")
-                {
-                    g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
-                }
-                else if (type == "RecurringGoal")
-                {
-                    g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
-                }
-                listOfGoals.Add(g);
-            }
-
             List<File> listOfFiles = BsonSerializer.Deserialize<List<File>>(userFilesList.ToJson());
             List<Note> listOfNotes = BsonSerializer.Deserialize<List<Note>>(userNotesList.ToJson());
             string usernameStr = BsonSerializer.Deserialize<string>(username.ToJson());
             string phoneNumberStr = BsonSerializer.Deserialize<string>(phoneNumber.ToJson());
             string emailStr = BsonSerializer.Deserialize<string>(email.ToJson());
 
-            UserAccount userAccount = new UserAccount() { ListOfGoals = listOfGoals, ListOfFiles = listOfFiles, ListOfNotes = listOfNotes, UserName = usernameStr, PhoneNumber = phoneNumberStr, Email = emailStr};
-            
-
+            UserAccount userAccount = new UserAccount() {ListOfGoals = listOfGoals, ListOfFiles = listOfFiles, ListOfNotes = listOfNotes, UserName = usernameStr, PhoneNumber = phoneNumberStr, Email = emailStr };
             return userAccount;
         }
 
