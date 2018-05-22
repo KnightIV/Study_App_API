@@ -22,27 +22,27 @@ namespace Study_App_API.MongoDB_Commands
         const string MONGO_CONNECTION_STRING = "mongodb://40.114.29.68:27017";
         const string MONGO_DATABASE = "Mongo_Study_App";
 
-        public static void DeleteFile(string guid)
+        public void DeleteFile(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
             FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
             fileCollection.DeleteOne(deleteFileFilter);
 
         }
-        public static void DeleteNote(string guid)
+        public void DeleteNote(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
             FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
             fileCollection.DeleteOne(deleteNoteFilter);
         }
-        public static void CreateNote(Note note)
+        public void CreateNote(Note note)
         {
             BsonDocument bnote = note.ToBsonDocument();
             IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
 
             noteCollection.InsertOne(bnote);
         }
-        public static void UploadFile(File file)
+        public void UploadFile(File file)
         {
             BsonDocument bfile = file.ToBsonDocument();
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
@@ -50,7 +50,7 @@ namespace Study_App_API.MongoDB_Commands
             fileCollection.InsertOne(bfile);
         }
 
-        public static void CreateUser(UserAccount user)
+        public void CreateUser(UserAccount user)
         {
             BsonDocument bUserAccount = user.ToBsonDocument();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
@@ -58,7 +58,7 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.InsertOne(bUserAccount);
         }
 
-        public static void CreateGoal(Goal goal, string username)
+        public void CreateGoal(Goal goal, string username)
     
         {
             BsonDocument bgoal = goal.ToBsonDocument();
@@ -78,17 +78,19 @@ namespace Study_App_API.MongoDB_Commands
 
         }
 
-        public static void MarkGoalAsComplete(string goalGuid, string Username)
+        public void MarkGoalAsComplete(string goalGuid, string Username)
         {
             throw new NotImplementedException();
         }
 
-        public static bool AuthenticateUser(string Username, string Password)
+        public bool AuthenticateUser(string Username, string Password)
         {
+
+            //LoginModel - Username, HashedPassword, and Salt : Strings
             throw new NotImplementedException();
         }
 
-        public static void ShareFile(string guid, Dictionary<string, Permission> Sharers)
+        public void ShareFile(string guid, Dictionary<string, Permission> Sharers)
         {
             throw new NotImplementedException();
         }
@@ -138,17 +140,19 @@ namespace Study_App_API.MongoDB_Commands
         }
 
 
-        public static IMongoCollection<BsonDocument> GetUpcomingGoals(string Username)
-        {
+        public IMongoCollection<BsonDocument> GetUpcomingGoals(string Username, DateTime dateTime)
+        {//date time is current date
+            //compare user goals from that day onwards, nothing else before that.
             throw new NotImplementedException();
         }
 
-        public static IMongoCollection<BsonDocument> GetFilePreviews(string Username)
+        public IMongoCollection<BsonDocument> GetFilePreviews(string Username)
         {
+            //get all of the files that the user has and convert them into file menu
             throw new NotImplementedException();
         }
 
-        private static IMongoCollection<BsonDocument> GetCollection(string name)
+        private IMongoCollection<BsonDocument> GetCollection(string name)
         {
             MongoUrl url = new MongoUrl(MONGO_CONNECTION_STRING);
             MongoClient client = new MongoClient(url);
