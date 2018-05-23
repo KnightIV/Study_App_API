@@ -9,6 +9,8 @@ using System.Timers;
 using System.Data.SqlClient;
 using MongoDB_Standard.models;
 using MongoDB.Bson.Serialization;
+using System.Threading.Tasks;
+
 
 namespace Study_App_API.MongoDB_Commands
 {
@@ -212,7 +214,7 @@ namespace Study_App_API.MongoDB_Commands
             {
               {"Users", fileUsers.ToBsonDocument()},
               {"GUID", guidDoc},
-              {"Content", fileContent.ToBsonDocumentArray()},
+              {"Content", fileContent},
               {"Extension", extensionDoc},
               {"Name", nameDoc}
             };
@@ -226,7 +228,6 @@ namespace Study_App_API.MongoDB_Commands
 
                 AddFilesToUsersHelper(file, currentUsername);
             }
-
         }
 
         public void CreateGoal(Goal goal, string username)
