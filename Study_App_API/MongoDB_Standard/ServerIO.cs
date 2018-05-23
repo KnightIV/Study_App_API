@@ -88,12 +88,8 @@ namespace Study_App_API.MongoDB_Commands
                         Console.WriteLine("Removed File: " + f.GUID);
                     }
                 }
-                //listOfFiles.Add(file);
             }
-            else
-            {
-                //listOfFiles.Add(file);
-            }
+            
             UserAccount updatedAccount = GetUser(username);
             userCollection.DeleteOne(updatedAccount.ToBsonDocument());
             updatedAccount.ListOfFiles = listOfFiles;
@@ -349,10 +345,28 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public IMongoCollection<BsonDocument> GetFilePreviews(string Username)
+        public List<FileMini> GetFilePreviews(string username)
         {
-            //get all of the files that the user has and convert them into file menu
-            throw new NotImplementedException();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+            var userFilesList = user["ListOfFiles"].AsBsonArray;
+
+            //IMongoCollection<BsonDocument> fileMiniColleciton = null;
+            List<FileMini> fileMiniList = new List<FileMini>();
+            File f = null;
+            foreach (var element in userFilesList)
+            {
+                f = BsonSerializer.Deserialize<File>(element.ToJson());
+                FileMini mini = new FileMini();
+                mini.GUID = f.GUID;
+                mini.Name = f.Name;
+                mini.Extension = f.Extension;
+                fileMiniList.Add(mini);
+                //fileMiniColleciton.InsertOne(mini.ToBsonDocument());
+            }
+
+            return fileMiniList;
         }
 
         private IMongoCollection<BsonDocument> GetCollection(string name)
