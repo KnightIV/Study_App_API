@@ -48,11 +48,62 @@ namespace Study_App_API.MongoDB_Commands
 
             fileCollection.DeleteOne(deleteFileFilter);
         }
+
+        public void RemoveNotesFromUserAccounts(Note note, string username)
+        {
+            UserAccount account = GetUser(username);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+            BsonType typeOfNotes = user["ListOfNotes"].BsonType;
+            List<Note> listOfNotes = new List<Note>();
+
+            if (typeOfNotes != BsonType.Null)
+            {
+                var userNotesList = user["ListOfNotes"].AsBsonArray;
+                Console.WriteLine("Notes List is not null");
+
+                foreach (var element in userNotesList)
+                {
+                    Note n = null;
+                    n = BsonSerializer.Deserialize<Note>(element.ToJson());
+                    if (n.GUID != note.GUID)
+                    {
+
+                        listOfNotes.Add(n);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("Removed Notes: " + n.GUID);
+                    }
+                }
+            }
+
+            UserAccount updatedAccount = GetUser(username);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfNotes = listOfNotes;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
+        }
         public void DeleteNote(string guid)
         {
-            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
             FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
-            fileCollection.DeleteOne(deleteNoteFilter);
+
+            BsonDocument note = noteCollection.Find(deleteNoteFilter).First();
+            var owner = note["Owner"];
+            var noteGuid = note["GUID"].AsBsonValue;
+            string guidDoc = BsonSerializer.Deserialize<string>(noteGuid.ToJson());
+
+            // a.UserName = owner;
+
+            var strName = BsonSerializer.Deserialize<string>(owner.ToJson());
+
+            Note deletingNote = new Note(null, null, null, guidDoc);
+            RemoveNotesFromUserAccounts(deletingNote, strName);
+            noteCollection.DeleteOne(deleteNoteFilter);
+
         }
         public void CreateNote(Note note)
         {
@@ -63,9 +114,9 @@ namespace Study_App_API.MongoDB_Commands
 
             noteCollection.InsertOne(bNote);
 
-            UserAccount account = GetUser(note.Owner.UserName);
+            UserAccount account = GetUser(note.Owner);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner.UserName);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
 
@@ -95,7 +146,7 @@ namespace Study_App_API.MongoDB_Commands
             {
                 listOfNotes.Add(note);
             }
-            UserAccount updatedAccount = GetUser(note.Owner.UserName);
+            UserAccount updatedAccount = GetUser(note.Owner);
             userCollection.DeleteOne(updatedAccount.ToBsonDocument());
             updatedAccount.ListOfNotes = listOfNotes;
             userCollection.InsertOne(updatedAccount.ToBsonDocument());

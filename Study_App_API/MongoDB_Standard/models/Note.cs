@@ -13,9 +13,9 @@ namespace MongoDB_Standard.models {
         public string GUID { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }
-        public UserAccount Owner { get; set; }
+        public  string Owner { get; set; }
 
-        public Note(UserAccount owner, string title = null, string content = null, string guid = null) {
+        public Note(string owner, string title = null, string content = null, string guid = null) {
             Owner = owner;
             Title = title;
             Content = content;
