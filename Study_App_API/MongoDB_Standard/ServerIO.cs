@@ -24,6 +24,14 @@ namespace Study_App_API.MongoDB_Commands
         const string MONGO_CONNECTION_STRING = "mongodb://40.114.29.68:27017";
         const string MONGO_DATABASE = "Mongo_Study_App";
 
+        public void CreateUser(UserAccount user)
+        {
+            BsonDocument bUserAccount = user.ToBsonDocument();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+
+            userCollection.InsertOne(bUserAccount);
+        }
+
         public void DeleteFile(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
