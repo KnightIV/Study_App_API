@@ -26,8 +26,25 @@ namespace Study_App_API.MongoDB_Commands
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
             FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
-            fileCollection.DeleteOne(deleteFileFilter);
 
+            BsonDocument file = fileCollection.Find(deleteFileFilter).First();
+
+            var users = file["Users"];
+            var fileGuid = file["GUID"].AsBsonValue;
+            string guidDoc = BsonSerializer.Deserialize<string>(fileGuid.ToJson());
+
+            File deletingFile = new File();
+            deletingFile.GUID = guidDoc;
+            deletingFile.Users = BsonSerializer.Deserialize<Dictionary<string, Permission>>(users.ToJson());
+
+            foreach (KeyValuePair<string, Permission> entry in deletingFile.Users)
+            {
+                string currentAccount = entry.Key;
+                Permission currentPermission = entry.Value;
+                RemoveFilesFromUserAccounts(deletingFile, currentAccount);
+            }
+
+            fileCollection.DeleteOne(deleteFileFilter);
         }
         public void DeleteNote(string guid)
         {
