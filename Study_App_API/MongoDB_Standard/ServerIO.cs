@@ -48,11 +48,62 @@ namespace Study_App_API.MongoDB_Commands
 
             fileCollection.DeleteOne(deleteFileFilter);
         }
+
+        public void RemoveNotesFromUserAccounts(Note note, string username)
+        {
+            UserAccount account = GetUser(username);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+            BsonType typeOfNotes = user["ListOfNotes"].BsonType;
+            List<Note> listOfNotes = new List<Note>();
+
+            if (typeOfNotes != BsonType.Null)
+            {
+                var userNotesList = user["ListOfNotes"].AsBsonArray;
+                Console.WriteLine("Notes List is not null");
+
+                foreach (var element in userNotesList)
+                {
+                    Note n = null;
+                    n = BsonSerializer.Deserialize<Note>(element.ToJson());
+                    if (n.GUID != note.GUID)
+                    {
+
+                        listOfNotes.Add(n);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("Removed Notes: " + n.GUID);
+                    }
+                }
+            }
+
+            UserAccount updatedAccount = GetUser(username);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfNotes = listOfNotes;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
+        }
         public void DeleteNote(string guid)
         {
-            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
             FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
-            fileCollection.DeleteOne(deleteNoteFilter);
+
+            BsonDocument note = noteCollection.Find(deleteNoteFilter).First();
+            var owner = note["Owner"];
+            var noteGuid = note["GUID"].AsBsonValue;
+            string guidDoc = BsonSerializer.Deserialize<string>(noteGuid.ToJson());
+
+            // a.UserName = owner;
+
+            var strName = BsonSerializer.Deserialize<string>(owner.ToJson());
+
+            Note deletingNote = new Note(null, null, null, guidDoc);
+            RemoveNotesFromUserAccounts(deletingNote, strName);
+            noteCollection.DeleteOne(deleteNoteFilter);
+
         }
         public void CreateNote(Note note)
         {
@@ -63,9 +114,9 @@ namespace Study_App_API.MongoDB_Commands
 
             noteCollection.InsertOne(bNote);
 
-            UserAccount account = GetUser(note.Owner.UserName);
+            UserAccount account = GetUser(note.Owner);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner.UserName);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
 
@@ -95,7 +146,7 @@ namespace Study_App_API.MongoDB_Commands
             {
                 listOfNotes.Add(note);
             }
-            UserAccount updatedAccount = GetUser(note.Owner.UserName);
+            UserAccount updatedAccount = GetUser(note.Owner);
             userCollection.DeleteOne(updatedAccount.ToBsonDocument());
             updatedAccount.ListOfNotes = listOfNotes;
             userCollection.InsertOne(updatedAccount.ToBsonDocument());
@@ -326,10 +377,68 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public void ShareFile(string guid, Dictionary<UserAccount, Permission> sharers)
+        public void ShareFile(string guid, Dictionary<string, Permission> sharers)
         {
-            Console.WriteLine("File ID: " + guid);
-            throw new NotImplementedException();
+            Dictionary<string, Permission> users = new Dictionary<string, Permission>();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+
+            BsonDocument file = fileCollection.Find(deleteFileFilter).First();
+            File sharingFile = BsonSerializer.Deserialize<File>(file.ToJson());
+
+            DeleteFile(sharingFile.GUID);
+            sharingFile.Users = sharers;
+            foreach (KeyValuePair<string, Permission> entry in sharers)
+            {
+                string currentAccount = entry.Key;
+                Permission currentPermission = entry.Value;
+                Console.WriteLine("Username to Share to: " + currentAccount);
+                Console.WriteLine("Permission Type for User: " + currentPermission);
+
+
+                FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", currentAccount);
+                BsonDocument user = userCollection.Find(getUserFilter).First();
+
+                BsonType typeOfFile = user["ListOfFiles"].BsonType;
+                List<File> listOfFiles = new List<File>();
+                if (typeOfFile != BsonType.Null)
+                {
+                    var userFileList = user["ListOfFiles"].AsBsonArray;
+
+                    foreach (var element in userFileList)
+                    {
+                        File f = null;
+                        f = BsonSerializer.Deserialize<File>(element.ToJson());
+                        listOfFiles.Add(f);
+                    }
+                    AddFilesToUsersHelper(sharingFile, currentAccount);
+                }
+                else
+                {
+
+                    AddFilesToUsersHelper(sharingFile, currentAccount);
+                }
+            }
+            sharingFile.Users = sharers;
+            fileCollection.InsertOne(sharingFile.ToBsonDocument());
+        }
+
+        public void UpdateFile(File file)
+        {
+
+            Dictionary<string, Permission> users = new Dictionary<string, Permission>();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", file.GUID);
+
+            BsonDocument fileFromCollection = fileCollection.Find(deleteFileFilter).First();
+            File fileToUpdate = BsonSerializer.Deserialize<File>(fileFromCollection.ToJson());
+            file.Users = fileToUpdate.Users;
+            DeleteFile(fileToUpdate.GUID);
+
+            fileCollection.InsertOne(file.ToBsonDocument());
+            ShareFile(file.GUID, file.Users);
         }
 
         public UserAccount GetUser(string userName)
