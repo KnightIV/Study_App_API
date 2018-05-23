@@ -32,6 +32,12 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.InsertOne(bUserAccount);
         }
 
+
+        public void UpdateUser(UserAccount user)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteFile(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
