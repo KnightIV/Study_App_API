@@ -42,6 +42,51 @@ namespace Study_App_API.MongoDB_Commands
 
             noteCollection.InsertOne(bnote);
         }
+
+        private void AddFilesToUsersHelper(File file, string username)
+        {
+            UserAccount account = GetUser(username);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+            Console.WriteLine(username + ": file added.");
+
+            BsonType typeOfFiles = user["ListOfFiles"].BsonType;
+            List<File> listOfFiles = new List<File>();
+            if (typeOfFiles != BsonType.Null)
+            {
+                var userFilesList = user["ListOfFiles"].AsBsonArray;
+                Console.WriteLine("Files List is not null");
+
+                foreach (var element in userFilesList)
+                {
+                    File f = null;
+                    f = BsonSerializer.Deserialize<File>(element.ToJson());
+                    if (f.GUID != file.GUID)
+                    {
+
+                        listOfFiles.Add(f);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("File already exist in the collection.");
+                    }
+                }
+                listOfFiles.Add(file);
+            }
+            else
+            {
+                listOfFiles.Add(file);
+            }
+
+            UserAccount updatedAccount = GetUser(username);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfFiles = listOfFiles;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
+            Console.WriteLine("End ");
+        }
         public void UploadFile(File file)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
@@ -74,12 +119,21 @@ namespace Study_App_API.MongoDB_Commands
             {
               {"Users", fileUsers.ToBsonDocument()},
               {"GUID", guidDoc},
-              {"Content", fileContent.ToBsonDocument()},
+              {"Content", fileContent.ToBsonDocumentArray()},
               {"Extension", extensionDoc},
               {"Name", nameDoc}
             };
 
             fileCollection.InsertOne(bFileFormat);
+
+            foreach (KeyValuePair<string, Permission> entry in file.Users)
+            {
+                string currentUsername = entry.Key;
+                Permission currentPermission = entry.Value;
+
+                AddFilesToUsersHelper(file, currentUsername);
+            }
+
         }
 
         public void CreateGoal(Goal goal, string username)
