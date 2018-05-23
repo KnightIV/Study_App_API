@@ -54,10 +54,50 @@ namespace Study_App_API.MongoDB_Commands
         }
         public void CreateNote(Note note)
         {
-            BsonDocument bnote = note.ToBsonDocument();
+            BsonDocument bNote = note.ToBsonDocument();
             IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
+            FilterDefinition<BsonDocument> getNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", note.GUID);
 
-            noteCollection.InsertOne(bnote);
+
+            noteCollection.InsertOne(bNote);
+
+            UserAccount account = GetUser(note.Owner.UserName);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner.UserName);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
+
+
+            BsonType typeOfNote = user["ListOfNotes"].BsonType;
+
+            List<Note> listOfNotes = new List<Note>();
+            if (typeOfNote != BsonType.Null)
+            {
+                var userNotesList = user["ListOfNotes"].AsBsonArray;
+                Console.WriteLine("Notes List is not null");
+                foreach (var element in userNotesList)
+                {
+                    Note n = null;
+                    n = BsonSerializer.Deserialize<Note>(element.ToJson());
+                    if (n.GUID != note.GUID)
+                    {
+                        listOfNotes.Add(n);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Note already exist in the collection.");
+                    }
+                }
+                listOfNotes.Add(note);
+            }
+            else
+            {
+                listOfNotes.Add(note);
+            }
+            UserAccount updatedAccount = GetUser(note.Owner.UserName);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfNotes = listOfNotes;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
+
         }
         public void RemoveFilesFromUserAccounts(File file, string username)
         {
