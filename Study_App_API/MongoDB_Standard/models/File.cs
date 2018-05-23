@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoDB_Standard.models {
-
+    [BsonIgnoreExtraElements]
     public class File {
 
         [BsonId]

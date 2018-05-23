@@ -377,10 +377,57 @@ namespace Study_App_API.MongoDB_Commands
             throw new NotImplementedException();
         }
 
-        public void ShareFile(string guid, Dictionary<UserAccount, Permission> sharers)
+        public void ShareFile(string guid, Dictionary<string, Permission> sharers)
         {
-            Console.WriteLine("File ID: " + guid);
-            throw new NotImplementedException();
+            //get file from collections 
+            //get listofFiles for each user
+            //add the file 
+            //Update user
+            Dictionary<string, Permission> users = new Dictionary<string, Permission>();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+
+            BsonDocument file = fileCollection.Find(deleteFileFilter).First();
+            File sharingFile = BsonSerializer.Deserialize<File>(file.ToJson());
+
+
+            //fileCollection.DeleteOne(sharingFile.ToBsonDocument());
+            DeleteFile(sharingFile.GUID);
+            sharingFile.Users = sharers;
+            foreach (KeyValuePair<string, Permission> entry in sharers)
+            {
+                string currentAccount = entry.Key;
+                Permission currentPermission = entry.Value;
+                Console.WriteLine("Username to Share to: " + currentAccount);
+                Console.WriteLine("Permission Type for User: " + currentPermission);
+
+
+                FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", currentAccount);
+                BsonDocument user = userCollection.Find(getUserFilter).First();
+
+                BsonType typeOfFile = user["ListOfFiles"].BsonType;
+                List<File> listOfFiles = new List<File>();
+                if (typeOfFile != BsonType.Null)
+                {
+                    var userFileList = user["ListOfFiles"].AsBsonArray;
+
+                    foreach (var element in userFileList)
+                    {
+                        File f = null;
+                        f = BsonSerializer.Deserialize<File>(element.ToJson());
+                        listOfFiles.Add(f);
+                    }
+                    AddFilesToUsersHelper(sharingFile, currentAccount);
+                }
+                else
+                {
+
+                    AddFilesToUsersHelper(sharingFile, currentAccount);
+                }
+            }
+            sharingFile.Users = sharers;
+            fileCollection.InsertOne(sharingFile.ToBsonDocument());
         }
 
         public UserAccount GetUser(string userName)
