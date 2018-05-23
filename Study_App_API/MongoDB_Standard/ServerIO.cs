@@ -42,7 +42,46 @@ namespace Study_App_API.MongoDB_Commands
 
             noteCollection.InsertOne(bnote);
         }
+        public void RemoveFilesFromUserAccounts(File file, string username)
+        {
+            UserAccount account = GetUser(username);
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            BsonDocument user = userCollection.Find(getUserFilter).First();
 
+            BsonType typeOfFiles = user["ListOfFiles"].BsonType;
+            List<File> listOfFiles = new List<File>();
+            if (typeOfFiles != BsonType.Null)
+            {
+                var userFilesList = user["ListOfFiles"].AsBsonArray;
+                Console.WriteLine("Files List is not null");
+
+                foreach (var element in userFilesList)
+                {
+                    File f = null;
+                    f = BsonSerializer.Deserialize<File>(element.ToJson());
+                    if (f.GUID != file.GUID)
+                    {
+
+                        listOfFiles.Add(f);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("Removed File: " + f.GUID);
+                    }
+                }
+                //listOfFiles.Add(file);
+            }
+            else
+            {
+                //listOfFiles.Add(file);
+            }
+            UserAccount updatedAccount = GetUser(username);
+            userCollection.DeleteOne(updatedAccount.ToBsonDocument());
+            updatedAccount.ListOfFiles = listOfFiles;
+            userCollection.InsertOne(updatedAccount.ToBsonDocument());
+        }
         private void AddFilesToUsersHelper(File file, string username)
         {
             UserAccount account = GetUser(username);
@@ -87,6 +126,7 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.InsertOne(updatedAccount.ToBsonDocument());
             Console.WriteLine("End ");
         }
+
         public void UploadFile(File file)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
