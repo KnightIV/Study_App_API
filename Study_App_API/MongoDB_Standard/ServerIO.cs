@@ -379,10 +379,6 @@ namespace Study_App_API.MongoDB_Commands
 
         public void ShareFile(string guid, Dictionary<string, Permission> sharers)
         {
-            //get file from collections 
-            //get listofFiles for each user
-            //add the file 
-            //Update user
             Dictionary<string, Permission> users = new Dictionary<string, Permission>();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
@@ -391,8 +387,6 @@ namespace Study_App_API.MongoDB_Commands
             BsonDocument file = fileCollection.Find(deleteFileFilter).First();
             File sharingFile = BsonSerializer.Deserialize<File>(file.ToJson());
 
-
-            //fileCollection.DeleteOne(sharingFile.ToBsonDocument());
             DeleteFile(sharingFile.GUID);
             sharingFile.Users = sharers;
             foreach (KeyValuePair<string, Permission> entry in sharers)
@@ -428,6 +422,23 @@ namespace Study_App_API.MongoDB_Commands
             }
             sharingFile.Users = sharers;
             fileCollection.InsertOne(sharingFile.ToBsonDocument());
+        }
+
+        public void UpdateFile(File file)
+        {
+
+            Dictionary<string, Permission> users = new Dictionary<string, Permission>();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", file.GUID);
+
+            BsonDocument fileFromCollection = fileCollection.Find(deleteFileFilter).First();
+            File fileToUpdate = BsonSerializer.Deserialize<File>(fileFromCollection.ToJson());
+            file.Users = fileToUpdate.Users;
+            DeleteFile(fileToUpdate.GUID);
+
+            fileCollection.InsertOne(file.ToBsonDocument());
+            ShareFile(file.GUID, file.Users);
         }
 
         public UserAccount GetUser(string userName)
