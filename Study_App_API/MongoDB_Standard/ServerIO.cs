@@ -37,30 +37,41 @@ namespace Study_App_API.MongoDB_Commands
         {
             throw new NotImplementedException();
         }
+        private File DeleteFileFromFileCollection(string guid)
+        {
+            IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+            File deletingFile = GetFileFromCollection(guid);
+            fileCollection.DeleteOne(deleteFileFilter);
 
-        public void DeleteFile(string guid)
+            return deletingFile;
+        }
+
+        public File GetFileFromCollection(string guid)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
             FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
 
             BsonDocument file = fileCollection.Find(deleteFileFilter).First();
 
-            var users = file["Users"];
-            var fileGuid = file["GUID"].AsBsonValue;
-            string guidDoc = BsonSerializer.Deserialize<string>(fileGuid.ToJson());
+            File deletingFile = BsonSerializer.Deserialize<File>(file.ToJson());
+            Console.WriteLine("Grabbed File: " + deletingFile.GUID);
+            return deletingFile;
+        }
 
-            File deletingFile = new File();
-            deletingFile.GUID = guidDoc;
-            deletingFile.Users = BsonSerializer.Deserialize<Dictionary<string, Permission>>(users.ToJson());
+        public void DeleteFile(string guid)
+        {
 
+            File deletingFile = GetFileFromCollection(guid);
             foreach (KeyValuePair<string, Permission> entry in deletingFile.Users)
             {
                 string currentAccount = entry.Key;
                 Permission currentPermission = entry.Value;
+                //Console.WriteLine("User account to delete file from: " + currentAccount);
                 RemoveFilesFromUserAccounts(deletingFile, currentAccount);
             }
+            DeleteFileFromFileCollection(guid);
 
-            fileCollection.DeleteOne(deleteFileFilter);
         }
 
         public void RemoveNotesFromUserAccounts(Note note, string username)
