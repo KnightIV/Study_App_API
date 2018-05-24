@@ -7,6 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoDB_Standard.models {
 
+    [BsonIgnoreExtraElements]
     public class Goal {
 
         [BsonId]
