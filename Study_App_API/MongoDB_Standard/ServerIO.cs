@@ -20,16 +20,25 @@ namespace Study_App_API.MongoDB_Commands
         const string USER_COLLECTION = "UserAccount";
         const string NOTE_COLLECTION = "Note";
         const string FILE_COLLECTION = "File";
+        const string LOGIN_COLLECTION = "Login";
 
         const string MONGO_CONNECTION_STRING = "mongodb://40.114.29.68:27017";
         const string MONGO_DATABASE = "Mongo_Study_App";
 
-        public void CreateUser(UserAccount user)
+        public void CreateUser(UserAccount user, string hashedPassword, string salt)
         {
             BsonDocument bUserAccount = user.ToBsonDocument();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
 
             userCollection.InsertOne(bUserAccount);
+
+            LoginUser loginUser = new LoginUser();
+            loginUser.UserName = user.UserName;
+            loginUser.HashedPassword = hashedPassword;
+            loginUser.Salt = salt;
+            BsonDocument bLoginUser = loginUser.ToBsonDocument();
+            IMongoCollection<BsonDocument> loginUserCollection = GetCollection(LOGIN_COLLECTION);
+            loginUserCollection.InsertOne(bLoginUser);
         }
 
 
@@ -513,13 +522,38 @@ namespace Study_App_API.MongoDB_Commands
             }
         }
 
-        public bool AuthenticateUser(string Username, string Password)
+        public bool AuthenticateUser(string username, string password)
         {
+            IMongoCollection<BsonDocument> loginUserCollection = GetCollection(LOGIN_COLLECTION);
 
-            //LoginModel - Username, HashedPassword, and Salt : Strings
-            throw new NotImplementedException();
+            FilterDefinition<BsonDocument> loginUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
+
+            long count = loginUserCollection.Find(loginUserFilter).Count();
+            bool valid = true;
+            if (count > 0)
+            {
+                BsonDocument returningUser = loginUserCollection.Find(loginUserFilter).First();
+                LoginUser grabbedUser = BsonSerializer.Deserialize<LoginUser>(returningUser.ToJson());
+                Console.WriteLine("Grabbed User: " + grabbedUser.UserName);
+                valid = true;
+                if (grabbedUser.HashedPassword.Equals(password))
+                {
+                    valid = true;
+                }
+                else
+                {
+                    Console.WriteLine("Passwords did not match! ");
+                    valid = false;
+                    return valid;
+                }
+            }
+            else
+            {
+                valid = false;
+                return valid;
+            }
+            return valid;
         }
-
         public void ShareFile(string guid, Dictionary<string, Permission> sharers)
         {
             Dictionary<string, Permission> users = new Dictionary<string, Permission>();
