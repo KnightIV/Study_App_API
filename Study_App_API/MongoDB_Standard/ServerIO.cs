@@ -665,12 +665,56 @@ namespace Study_App_API.MongoDB_Commands
             return userAccount;
         }
 
-
-        public IMongoCollection<BsonDocument> GetUpcomingGoals(string Username, DateTime dateTime)
-        {//date time is current date
-            //compare user goals from that day onwards, nothing else before that.
-            throw new NotImplementedException();
+        private bool checkIfGoalIsUpcoming(DateTime deadline)
+        {
+            if (deadline < DateTime.Now)
+            {
+                return false;
+            }
+            else if (deadline == DateTime.Now)
+            {
+                return true;
+            }
+            return true;
         }
+        public List<Goal> GetUpcomingGoals(string username, DateTime dateTime)
+        {
+            UserAccount grabbedUser = GetUser(username);
+            Console.WriteLine("Grabbed User: " + grabbedUser.UserName);
+            List<Goal> listOfGoals = grabbedUser.ListOfGoals;
+            List<Goal> upcomingGoals = new List<Goal>();
+
+            if (listOfGoals != null)
+            {
+                if (listOfGoals.Count != 0)
+                {
+                    Console.WriteLine("Goals exist.");
+                    Console.WriteLine("Current Date: " + dateTime.ToString());
+                    foreach (Goal eachGoal in listOfGoals)
+                    {
+                        DateTime goalDeadline = eachGoal.Deadline;
+                        bool validUpcomingGoal = checkIfGoalIsUpcoming(goalDeadline);
+                        Console.WriteLine("Goal is Upcoming: " + eachGoal.TaskName + " --: " + validUpcomingGoal);
+
+                        if (validUpcomingGoal == true)
+                        {
+                            upcomingGoals.Add(eachGoal);
+                        }
+                    }
+                }
+                else
+                {
+                    return new List<Goal>();
+                }
+            }
+            else
+            {
+                Console.WriteLine("List is null");
+                return null;
+            }
+            return upcomingGoals;
+        }
+
 
         public List<FileMini> GetFilePreviews(string username)
         {
