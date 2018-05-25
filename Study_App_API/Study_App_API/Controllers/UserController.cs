@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 
 using MongoDB_Standard.models;
@@ -15,8 +16,8 @@ namespace Study_App_API.Controllers {
 
         private ServerIO serverInterface = new ServerIO();
 
-        [HttpGet]
-        public JsonResult Login(string username, string password) {
+        [System.Web.Mvc.HttpGet]
+        public JsonResult AuthenticateUser(string username, string password) {
             UserAccount user = serverInterface.GetUser(username);
             if (user == null)
                 return Json(false, JsonRequestBehavior.AllowGet);
@@ -25,28 +26,23 @@ namespace Study_App_API.Controllers {
             return Json(serverInterface.AuthenticateUser(username, hashedPassword) , JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
-        public JsonResult CreateAccount(string username, string password, string email, string phoneNumber = null) {
-            UserAccount newUser = new UserAccount {
-                UserName = username,
-                Email = email,
-                PhoneNumber = phoneNumber ?? String.Empty
-            };
-            serverInterface.CreateUser(newUser);
-            return Json(newUser);
+        [System.Web.Mvc.HttpPost]
+        public JsonResult CreateAccount([FromBody] UserAccount user, string password) {
+            serverInterface.CreateUser(user, password);
+            return Json(user);
         }
 
-        [HttpGet]
+        [System.Web.Mvc.HttpGet]
         public JsonResult DoesUserExist(string username) {
             return Json(new { result = serverInterface.GetUser(username) == null }, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
+        [System.Web.Mvc.HttpGet]
         public JsonResult GetUser(string username) {
             return Json(serverInterface.GetUser(username), JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
+        [System.Web.Mvc.HttpPost]
         public void AddPoints(string username, int pointsToAdd) {
             UserAccount user = serverInterface.GetUser(username);
             user.Points += pointsToAdd;

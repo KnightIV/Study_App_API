@@ -15,7 +15,7 @@ namespace Study_App_API.Controllers {
         private ServerIO serverInterface = new ServerIO();
 
         [System.Web.Mvc.HttpPost]
-        public void UploadFile(File f) {
+        public void UploadFile([FromBody] File f) {
             serverInterface.UploadFile(f);
             // TODO: add way to update user
         }
@@ -23,11 +23,8 @@ namespace Study_App_API.Controllers {
         // TODO: possibly add username to ensure that the file isn't accessed by someone that doesn't have the authority
         [System.Web.Mvc.HttpGet]
         public JsonResult DownloadFile(string guid) {
-            // TODO: add way to get file from server
-            throw new NotImplementedException();
+            return Json(serverInterface.GetFileFromCollection(guid), JsonRequestBehavior.AllowGet);
         }
-
-        // TODO: find way to get dictionary into asp.net action for ShareFile()
 
         // TODO: possibly add username to ensure that the file isn't accessed by someone that doesn't have the authority
         [System.Web.Mvc.HttpPost]
@@ -44,6 +41,11 @@ namespace Study_App_API.Controllers {
             }
 
             return Json(preview, JsonRequestBehavior.AllowGet);
+        }
+
+        [System.Web.Mvc.HttpPost]
+        public void ShareFile(string guid, [FromBody] Dictionary<string, Permission> shareWith) {
+            serverInterface.ShareFile(guid, shareWith);
         }
     }
 }
