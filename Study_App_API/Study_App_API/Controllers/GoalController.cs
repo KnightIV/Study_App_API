@@ -34,15 +34,26 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Mvc.HttpGet]
         public JsonResult GetUpcomingRecurringGoals(string username, [FromBody] DateTime curDate) {
-            // TODO: fix return type of serverInterface.GetUpcomingGoals()
-            List<Goal> upcomingGoals = (List<Goal>) serverInterface.GetUpcomingGoals(username, curDate); // Temp cast, the method should return List<Goal> already
-            return Json(upcomingGoals.Where(g => g is RecurringGoal).ToList(), JsonRequestBehavior.AllowGet);
+            UserAccount user = serverInterface.GetUser(username);
+            int curMonth = curDate.Month;
+            Dictionary<Goal, DateTime> recurringGoals = new Dictionary<Goal, DateTime>();
+            foreach (Goal goal in user.ListOfGoals) {
+                if (goal is RecurringGoal recGoal) {
+                    DateTime date = recGoal.Deadline;
+                    for (; date.Month < curMonth; date += recGoal.Frequency) { }
+
+                    if (date.Month == curMonth) {
+                        recurringGoals.Add(goal, date);
+                    }
+                }
+            }
+
+            return Json(recurringGoals, JsonRequestBehavior.AllowGet);
         }
 
         [System.Web.Mvc.HttpGet]
         public JsonResult GetUpcomingNonRecurringGoals(string username, [FromBody] DateTime curDate) {
-            // TODO: fix return type of serverInterface.GetUpcomingGoals()
-            List<Goal> upcomingGoals = (List<Goal>) serverInterface.GetUpcomingGoals(username, curDate); // Temp cast, the method should return List<Goal> already
+            List<Goal> upcomingGoals = serverInterface.GetUpcomingGoals(username, curDate);
             return Json(upcomingGoals.Where(g => g is NonRecurringGoal).ToList(), JsonRequestBehavior.AllowGet);
         }
 

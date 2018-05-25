@@ -17,7 +17,6 @@ namespace Study_App_API.Controllers {
         [System.Web.Mvc.HttpPost]
         public void UploadFile([FromBody] File f) {
             serverInterface.UploadFile(f);
-            // TODO: add way to update user
         }
 
         // TODO: possibly add username to ensure that the file isn't accessed by someone that doesn't have the authority

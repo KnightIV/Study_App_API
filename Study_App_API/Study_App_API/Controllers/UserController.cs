@@ -21,14 +21,14 @@ namespace Study_App_API.Controllers {
             UserAccount user = serverInterface.GetUser(username);
             if (user == null)
                 return Json(false, JsonRequestBehavior.AllowGet);
-
-            string hashedPassword = EncryptPassword(password, null); // replace with loginuser stuff
+            string hashedPassword = EncryptPassword(password, null).hashedPassword; // replace salt null with loginuser stuff
             return Json(serverInterface.AuthenticateUser(username, hashedPassword) , JsonRequestBehavior.AllowGet);
         }
 
         [System.Web.Mvc.HttpPost]
         public JsonResult CreateAccount([FromBody] UserAccount user, string password) {
-            serverInterface.CreateUser(user, password);
+            var (hashedPassword, salt) = EncryptPassword(password); 
+            serverInterface.CreateUser(user, hashedPassword, salt);
             return Json(user);
         }
 
@@ -56,7 +56,7 @@ namespace Study_App_API.Controllers {
             return buffer;
         }
 
-        private string EncryptPassword(string password, string salt = null) {
+        private (string hashedPassword, string salt) EncryptPassword(string password, string salt = null) {
             HashAlgorithm hashAlgorithm = new SHA256Managed();
             byte[] saltBytes;
             if (salt == null) {
@@ -71,7 +71,7 @@ namespace Study_App_API.Controllers {
             saltBytes.CopyTo(passwordAndSaltBytes, passwordBytes.Length);
 
             byte[] hashedPassword = hashAlgorithm.ComputeHash(passwordAndSaltBytes);
-            return Convert.ToBase64String(hashedPassword);
+            return (Convert.ToBase64String(hashedPassword), Convert.ToBase64String(saltBytes));
         }
     }
 }
