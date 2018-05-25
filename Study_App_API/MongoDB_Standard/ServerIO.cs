@@ -25,6 +25,26 @@ namespace Study_App_API.MongoDB_Commands
         const string MONGO_CONNECTION_STRING = "mongodb://40.114.29.68:27017";
         const string MONGO_DATABASE = "Mongo_Study_App";
 
+
+        public LoginUser GetLoginUser(string username)
+        {
+            IMongoCollection<BsonDocument> loginUserCollection = GetCollection(LOGIN_COLLECTION);
+
+            FilterDefinition<BsonDocument> loginUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
+
+            long count = loginUserCollection.Find(loginUserFilter).Count();
+            //IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
+            //FilterDefinition<BsonDocument> deleteFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", guid);
+
+
+            if (count > 0)
+            {
+                BsonDocument loginUser = loginUserCollection.Find(loginUserFilter).First();
+                LoginUser grabbedUser = BsonSerializer.Deserialize<LoginUser>(loginUser.ToJson());
+                return grabbedUser;
+            }
+            return null;
+        }
         public void CreateUser(UserAccount user, string hashedPassword, string salt)
         {
             BsonDocument bUserAccount = user.ToBsonDocument();
