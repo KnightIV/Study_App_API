@@ -18,14 +18,12 @@ namespace Study_App_API.Controllers {
         public void UploadFile([FromBody] File f) {
             serverInterface.UploadFile(f);
         }
-
-        // TODO: possibly add username to ensure that the file isn't accessed by someone that doesn't have the authority
+        
         [System.Web.Mvc.HttpGet]
         public JsonResult DownloadFile(string guid) {
             return Json(serverInterface.GetFileFromCollection(guid), JsonRequestBehavior.AllowGet);
         }
-
-        // TODO: possibly add username to ensure that the file isn't accessed by someone that doesn't have the authority
+        
         [System.Web.Mvc.HttpPost]
         public void DeleteFile(string guid) {
             serverInterface.DeleteFile(guid);
@@ -33,13 +31,7 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Http.HttpGet]
         public JsonResult GetFilePreviews(string username) {
-            UserAccount user = serverInterface.GetUser(username);
-            List<FileMini> preview = new List<FileMini>();
-            foreach (File file in user.ListOfFiles) {
-                preview.Add(file);
-            }
-
-            return Json(preview, JsonRequestBehavior.AllowGet);
+            return Json(serverInterface.GetFilePreviews(username), JsonRequestBehavior.AllowGet);
         }
 
         [System.Web.Mvc.HttpPost]

@@ -18,10 +18,10 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Mvc.HttpGet]
         public JsonResult AuthenticateUser(string username, string password) {
-            UserAccount user = serverInterface.GetUser(username);
+            LoginUser user = serverInterface.GetLoginUser(username);
             if (user == null)
                 return Json(false, JsonRequestBehavior.AllowGet);
-            string hashedPassword = EncryptPassword(password, null).hashedPassword; // replace salt null with loginuser stuff
+            string hashedPassword = EncryptPassword(password, user.Salt).hashedPassword;
             return Json(serverInterface.AuthenticateUser(username, hashedPassword) , JsonRequestBehavior.AllowGet);
         }
 
@@ -44,9 +44,7 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Mvc.HttpPost]
         public void AddPoints(string username, int pointsToAdd) {
-            UserAccount user = serverInterface.GetUser(username);
-            user.Points += pointsToAdd;
-            // TODO: add a way to update users
+            throw new NotImplementedException();
         }
 
         private byte[] CreateSalt(int size = 10) {
