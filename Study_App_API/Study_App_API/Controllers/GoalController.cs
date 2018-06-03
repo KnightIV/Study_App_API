@@ -49,16 +49,14 @@ namespace Study_App_API.Controllers {
 
             return Json(recurringGoals, JsonRequestBehavior.AllowGet);
         }
-
-        // TODO: tell Alex to change http call in the app so that he sends date through the url
+        
         [System.Web.Mvc.HttpGet]
         public JsonResult GetUpcomingNonRecurringGoals(string username, string dateString) {
             DateTime curDate = Convert.ToDateTime(dateString);
             List<Goal> upcomingGoals = serverInterface.GetUpcomingGoals(username, curDate);
             return Json(upcomingGoals.Where(g => g is NonRecurringGoal).ToList(), JsonRequestBehavior.AllowGet);
         }
-
-        // TODO: tell Alex to change http call in the app so that he sends date through the url
+        
         [System.Web.Mvc.HttpGet]
         public JsonResult GetOverdueGoals(string username, string dateString) {
             DateTime curDate = Convert.ToDateTime(dateString);

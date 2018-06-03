@@ -1,15 +1,16 @@
-﻿using MongoDB.Driver;
-using MongoDB.Bson;
-using MongoDB.Driver.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Timers;
 using System.Data.SqlClient;
 using MongoDB_Standard.models;
-using MongoDB.Bson.Serialization;
 using System.Threading.Tasks;
+
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 
 
 namespace Study_App_API.MongoDB_Commands
@@ -22,7 +23,7 @@ namespace Study_App_API.MongoDB_Commands
         const string FILE_COLLECTION = "File";
         const string LOGIN_COLLECTION = "Login";
 
-        const string MONGO_CONNECTION_STRING = "mongodb://40.114.29.68:27017";
+        const string MONGO_CONNECTION_STRING = "mongodb://127.0.0.1:27017";
         const string MONGO_DATABASE = "Mongo_Study_App";
 
 
@@ -84,7 +85,7 @@ namespace Study_App_API.MongoDB_Commands
             BsonDocument file = fileCollection.Find(deleteFileFilter).First();
 
             File deletingFile = BsonSerializer.Deserialize<File>(file.ToJson());
-            Console.WriteLine("Grabbed File: " + deletingFile.GUID);
+            
             return deletingFile;
         }
 
@@ -117,7 +118,7 @@ namespace Study_App_API.MongoDB_Commands
             if (typeOfNotes != BsonType.Null)
             {
                 var userNotesList = user["ListOfNotes"].AsBsonArray;
-                Console.WriteLine("Notes List is not null");
+                
 
                 foreach (var element in userNotesList)
                 {
@@ -131,7 +132,7 @@ namespace Study_App_API.MongoDB_Commands
                     }
                     else
                     {
-                        Console.WriteLine("Removed Notes: " + n.GUID);
+                        
                     }
                 }
             }
@@ -351,7 +352,7 @@ namespace Study_App_API.MongoDB_Commands
             {
                 if (eachFile.GUID == fileGUID)
                 {
-                    Console.WriteLine("File matched: " + eachFile.GUID);
+                    
                     users = eachFile.Users;
                     break;
                 }
@@ -367,14 +368,14 @@ namespace Study_App_API.MongoDB_Commands
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
-            Console.WriteLine(username + ": file added.");
+            
 
             BsonType typeOfFiles = user["ListOfFiles"].BsonType;
             List<File> listOfFiles = new List<File>();
             if (typeOfFiles != BsonType.Null)
             {
                 var userFilesList = user["ListOfFiles"].AsBsonArray;
-                Console.WriteLine("Files List is not null");
+                
 
                 foreach (var element in userFilesList)
                 {
@@ -388,7 +389,7 @@ namespace Study_App_API.MongoDB_Commands
                     }
                     else
                     {
-                        Console.WriteLine("File already exist in the collection.");
+                        
                     }
                 }
                 listOfFiles.Add(file);
@@ -402,7 +403,7 @@ namespace Study_App_API.MongoDB_Commands
             userCollection.DeleteOne(updatedAccount.ToBsonDocument());
             updatedAccount.ListOfFiles = listOfFiles;
             userCollection.InsertOne(updatedAccount.ToBsonDocument());
-            Console.WriteLine("End ");
+            
         }
 
         public void UploadFile(File file)
@@ -467,7 +468,7 @@ namespace Study_App_API.MongoDB_Commands
             if (typeOfGoal != BsonType.Null)
             {
                 var userGoalsList = user["ListOfGoals"].AsBsonArray;
-                Console.WriteLine("Goals List is not null");
+                
 
                 foreach (var element in userGoalsList)
                 {
@@ -508,7 +509,7 @@ namespace Study_App_API.MongoDB_Commands
             if (typeOfGoal != BsonType.Null)
             {
                 var userGoalsList = user["ListOfGoals"].AsBsonArray;
-                Console.WriteLine("Goals List is not null");
+                
 
                 foreach (var element in userGoalsList)
                 {
@@ -519,7 +520,7 @@ namespace Study_App_API.MongoDB_Commands
                         g = BsonSerializer.Deserialize<NonRecurringGoal>(element.ToJson());
                         if (g.GUID.Equals(goalGuid))
                         {
-                            Console.WriteLine("Matched non recurring goal");
+                            
                             g.Completed = true;
                         }
                     }
@@ -528,7 +529,7 @@ namespace Study_App_API.MongoDB_Commands
                         g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
                         if (g.GUID.Equals(goalGuid))
                         {
-                            Console.WriteLine("Matched recurring goal");
+                            
                             g.Completed = true;
                         }
                     }
@@ -554,7 +555,7 @@ namespace Study_App_API.MongoDB_Commands
             {
                 BsonDocument returningUser = loginUserCollection.Find(loginUserFilter).First();
                 LoginUser grabbedUser = BsonSerializer.Deserialize<LoginUser>(returningUser.ToJson());
-                Console.WriteLine("Grabbed User: " + grabbedUser.UserName);
+                
                 valid = true;
                 if (grabbedUser.HashedPassword.Equals(password))
                 {
@@ -562,7 +563,7 @@ namespace Study_App_API.MongoDB_Commands
                 }
                 else
                 {
-                    Console.WriteLine("Passwords did not match! ");
+                    
                     valid = false;
                     return valid;
                 }
@@ -590,8 +591,8 @@ namespace Study_App_API.MongoDB_Commands
             {
                 string currentAccount = entry.Key;
                 Permission currentPermission = entry.Value;
-                Console.WriteLine("Username to Share to: " + currentAccount);
-                Console.WriteLine("Permission Type for User: " + currentPermission);
+                
+                
 
 
                 FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", currentAccount);
@@ -640,10 +641,14 @@ namespace Study_App_API.MongoDB_Commands
 
         public UserAccount GetUser(string userName)
         {
-            Console.WriteLine("Started method..." + " " + userName);
+            
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", userName);
-            BsonDocument user = userCollection.Find(getUserFilter).First();
+            var userFirst = userCollection.Find(getUserFilter);
+            var user = userFirst.FirstOrDefault();
+            if (user == null)
+                return null;
+
             BsonType typeOfGoal = user["ListOfGoals"].AsBsonValue.BsonType;
 
             List<Goal> listOfGoals = new List<Goal>();
@@ -700,7 +705,7 @@ namespace Study_App_API.MongoDB_Commands
         public List<Goal> GetUpcomingGoals(string username, DateTime dateTime)
         {
             UserAccount grabbedUser = GetUser(username);
-            Console.WriteLine("Grabbed User: " + grabbedUser.UserName);
+            
             List<Goal> listOfGoals = grabbedUser.ListOfGoals;
             List<Goal> upcomingGoals = new List<Goal>();
 
@@ -708,13 +713,13 @@ namespace Study_App_API.MongoDB_Commands
             {
                 if (listOfGoals.Count != 0)
                 {
-                    Console.WriteLine("Goals exist.");
-                    Console.WriteLine("Current Date: " + dateTime.ToString());
+                    
+                    
                     foreach (Goal eachGoal in listOfGoals)
                     {
                         DateTime goalDeadline = eachGoal.Deadline;
                         bool validUpcomingGoal = checkIfGoalIsUpcoming(goalDeadline);
-                        Console.WriteLine("Goal is Upcoming: " + eachGoal.TaskName + " --: " + validUpcomingGoal);
+                        
 
                         if (validUpcomingGoal == true)
                         {
@@ -729,7 +734,7 @@ namespace Study_App_API.MongoDB_Commands
             }
             else
             {
-                Console.WriteLine("List is null");
+                
                 return null;
             }
             return upcomingGoals;

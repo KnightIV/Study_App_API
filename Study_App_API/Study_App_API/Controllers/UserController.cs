@@ -32,9 +32,10 @@ namespace Study_App_API.Controllers {
             return Json(user);
         }
 
+        [System.Web.Mvc.Route("doesuserexist/{username}")]
         [System.Web.Mvc.HttpGet]
         public JsonResult DoesUserExist(string username) {
-            return Json(new { result = serverInterface.GetUser(username) == null }, JsonRequestBehavior.AllowGet);
+            return Json(serverInterface.GetUser(username) != null, JsonRequestBehavior.AllowGet);
         }
 
         [System.Web.Mvc.HttpGet]
