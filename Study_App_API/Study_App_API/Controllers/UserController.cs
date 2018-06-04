@@ -49,20 +49,16 @@ namespace Study_App_API.Controllers {
         }
 
         private byte[] CreateSalt(int size = 10) {
-            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
             byte[] buffer = new byte[size];
-            rng.GetBytes(buffer);
-            return buffer;
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider()) {
+                rng.GetBytes(buffer);
+                return buffer;
+            }
         }
 
-        private (string hashedPassword, string salt) EncryptPassword(string password, string salt = null) {
+        private (string hashedPassword, byte[] salt) EncryptPassword(string password, byte[] salt = null) {
             HashAlgorithm hashAlgorithm = new SHA256Managed();
-            byte[] saltBytes;
-            if (salt == null) {
-                saltBytes = CreateSalt();
-            } else {
-                saltBytes = Encoding.UTF8.GetBytes(salt);
-            }
+            byte[] saltBytes = salt ?? CreateSalt();
             byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
             byte[] passwordAndSaltBytes = new byte[saltBytes.Length + passwordBytes.Length];
@@ -70,7 +66,7 @@ namespace Study_App_API.Controllers {
             saltBytes.CopyTo(passwordAndSaltBytes, passwordBytes.Length);
 
             byte[] hashedPassword = hashAlgorithm.ComputeHash(passwordAndSaltBytes);
-            return (Convert.ToBase64String(hashedPassword), Convert.ToBase64String(saltBytes));
+            return (Convert.ToBase64String(hashedPassword), saltBytes);
         }
     }
 }

@@ -33,12 +33,12 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Mvc.HttpPost]
         public void CreateNote([FromBody] Note note, string username) {
-            // TODO: add way to update user
+            serverInterface.CreateNote(note);
         }
 
         [System.Web.Mvc.HttpPost]
         public void DeleteNote(string guid) {
-            // TODO: add way to update user
+            serverInterface.DeleteNote(guid);
         }
 
         [System.Web.Mvc.HttpPost]

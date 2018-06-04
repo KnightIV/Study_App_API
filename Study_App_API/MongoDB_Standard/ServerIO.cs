@@ -46,7 +46,7 @@ namespace Study_App_API.MongoDB_Commands
             }
             return null;
         }
-        public void CreateUser(UserAccount user, string hashedPassword, string salt)
+        public void CreateUser(UserAccount user, string hashedPassword, byte[] salt)
         {
             BsonDocument bUserAccount = user.ToBsonDocument();
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
@@ -643,7 +643,7 @@ namespace Study_App_API.MongoDB_Commands
         {
             
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", userName);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", userName);
             var userFirst = userCollection.Find(getUserFilter);
             var user = userFirst.FirstOrDefault();
             if (user == null)
@@ -677,7 +677,7 @@ namespace Study_App_API.MongoDB_Commands
             }
             var userFilesList = user["ListOfFiles"].AsBsonValue;
             var userNotesList = user["ListOfNotes"].AsBsonValue;
-            var username = user["UserName"].AsBsonValue;
+            var username = user["_id"].AsBsonValue;
             var phoneNumber = user["PhoneNumber"].AsBsonValue;
             var email = user["Email"].AsBsonValue;
             List<File> listOfFiles = BsonSerializer.Deserialize<List<File>>(userFilesList.ToJson());
