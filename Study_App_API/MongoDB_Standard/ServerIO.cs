@@ -365,10 +365,8 @@ namespace Study_App_API.MongoDB_Commands
         {
             UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
-
-            
 
             BsonType typeOfFiles = user["ListOfFiles"].BsonType;
             List<File> listOfFiles = new List<File>();
@@ -409,9 +407,7 @@ namespace Study_App_API.MongoDB_Commands
         public void UploadFile(File file)
         {
             IMongoCollection<BsonDocument> fileCollection = GetCollection(FILE_COLLECTION);
-            FilterDefinition<BsonDocument> getFileFilter = Builders<BsonDocument>.Filter.Eq("GUID", file.GUID);
             Dictionary<string, Permission> fileUsers = new Dictionary<string, Permission>();
-
 
             foreach (KeyValuePair<string, Permission> entry in file.Users)
             {
