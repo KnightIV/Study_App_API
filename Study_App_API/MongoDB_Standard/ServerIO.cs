@@ -109,7 +109,7 @@ namespace Study_App_API.MongoDB_Commands
         {
             UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
             BsonType typeOfNotes = user["ListOfNotes"].BsonType;
@@ -172,7 +172,7 @@ namespace Study_App_API.MongoDB_Commands
 
             UserAccount account = GetUser(note.Owner);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", note.Owner);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", note.Owner);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
 
@@ -209,7 +209,7 @@ namespace Study_App_API.MongoDB_Commands
         {
             UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
             BsonType typeOfFiles = user["ListOfFiles"].BsonType;
@@ -340,7 +340,7 @@ namespace Study_App_API.MongoDB_Commands
         {
             UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
    
@@ -455,7 +455,7 @@ namespace Study_App_API.MongoDB_Commands
         {
             UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
 
@@ -497,7 +497,7 @@ namespace Study_App_API.MongoDB_Commands
         {
 
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
             BsonType typeOfGoal = user["ListOfGoals"].BsonType;
             List<Goal> listOfGoals = new List<Goal>();
@@ -591,7 +591,7 @@ namespace Study_App_API.MongoDB_Commands
                 
 
 
-                FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", currentAccount);
+                FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", currentAccount);
                 BsonDocument user = userCollection.Find(getUserFilter).First();
 
                 BsonType typeOfFile = user["ListOfFiles"].BsonType;
@@ -740,7 +740,7 @@ namespace Study_App_API.MongoDB_Commands
         public List<FileMini> GetFilePreviews(string username)
         {
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
-            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("UserName", username);
+            FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
             var userFilesList = user["ListOfFiles"].AsBsonArray;
 
