@@ -718,7 +718,7 @@ namespace Study_App_API.MongoDB_Commands
         //}
 
         private bool CheckIfGoalIsUpcoming(Goal g, DateTime startDate) {
-            return !(g.Completed || g.Hidden) && (g.Deadline > startDate || g is RecurringGoal);
+            return !(g.Completed || g.Hidden) && (g.Deadline >= startDate || g is RecurringGoal);
         }
 
         public List<Goal> GetUpcomingGoals(string username, DateTime dateTime)
