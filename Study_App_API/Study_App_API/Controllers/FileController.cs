@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
-
+using Newtonsoft.Json;
 using StudyApp.Assets.Models;
 using Study_App_API.MongoDB_Commands;
 
@@ -20,8 +20,8 @@ namespace Study_App_API.Controllers {
         }
         
         [System.Web.Mvc.HttpGet]
-        public JsonResult DownloadFile(string guid) {
-            return Json(serverInterface.GetFileFromCollection(guid), JsonRequestBehavior.AllowGet);
+        public ActionResult DownloadFile(string guid) {
+            return Content(JsonConvert.SerializeObject(serverInterface.GetFileFromCollection(guid), SerializationBinderHelper.Settings), "application/json");
         }
         
         [System.Web.Mvc.HttpPost]
@@ -30,8 +30,8 @@ namespace Study_App_API.Controllers {
         }
 
         [System.Web.Http.HttpGet]
-        public JsonResult GetFilePreviews(string username) {
-            return Json(serverInterface.GetFilePreviews(username), JsonRequestBehavior.AllowGet);
+        public ActionResult GetFilePreviews(string username) {
+            return Content(JsonConvert.SerializeObject(serverInterface.GetFilePreviews(username), SerializationBinderHelper.Settings), "application/json");
         }
 
         [System.Web.Mvc.HttpPost]

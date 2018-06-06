@@ -636,6 +636,24 @@ namespace Study_App_API.MongoDB_Commands
             ShareFile(file.GUID, file.Users);
         }
 
+        public void UpdateNote(Note note)
+        {
+
+            Dictionary<string, Permission> users = new Dictionary<string, Permission>();
+            IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
+            IMongoCollection<BsonDocument> noteCollection = GetCollection(NOTE_COLLECTION);
+            FilterDefinition<BsonDocument> deleteNoteFilter = Builders<BsonDocument>.Filter.Eq("GUID", note.GUID);
+
+            BsonDocument noteFromCollection = noteCollection.Find(deleteNoteFilter).First();
+            Note noteToUpdate = BsonSerializer.Deserialize<Note>(noteFromCollection.ToJson());
+            note.Owner = noteToUpdate.Owner;
+            //file.Users = fileToUpdate.Users;
+            DeleteFile(noteToUpdate.GUID);
+
+            noteCollection.InsertOne(note.ToBsonDocument());
+         //   ShareFile(note.GUID, note.Owner);
+        }
+
         public UserAccount GetUser(string userName)
         {
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
