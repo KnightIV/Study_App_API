@@ -39,7 +39,7 @@ namespace Study_App_API.Controllers {
 
         [System.Web.Mvc.HttpGet]
         public ActionResult GetUpcomingRecurringGoals(string username, string dateString) {
-            DateTime curDate = Convert.ToDateTime(dateString);
+            DateTime curDate = DateTime.ParseExact(dateString, "MM/dd/yyyy", null);
             List<Goal> upcomingGoals = serverInterface.GetUpcomingGoals(username, curDate);
             //UserAccount user = serverInterface.GetUser(username);
             //int curMonth = curDate.Month;
@@ -59,15 +59,16 @@ namespace Study_App_API.Controllers {
         }
         
         [System.Web.Mvc.HttpGet]
-        public ActionResult GetUpcomingNonRecurringGoals(string username, string dateString) {
-            DateTime curDate = Convert.ToDateTime(dateString);
+        public ActionResult GetUpcomingNonRecurringGoals(string username, string dateString)
+        {
+            DateTime curDate = DateTime.ParseExact(dateString, "MM/dd/yyyy", null);
             List<Goal> upcomingGoals = serverInterface.GetUpcomingGoals(username, curDate);
             return Content(JsonConvert.SerializeObject(upcomingGoals.Where(g => g is NonRecurringGoal).ToList(), SerializationBinderHelper.Settings));
         }
         
         [System.Web.Mvc.HttpGet]
         public ActionResult GetOverdueGoals(string username, string dateString) {
-            DateTime curDate = Convert.ToDateTime(dateString);
+            DateTime curDate = DateTime.ParseExact(dateString, "MM/dd/yyyy", null);
             UserAccount user = serverInterface.GetUser(username);
             List<Goal> overdueGoals = user.ListOfGoals.Where(g => g is NonRecurringGoal && g.Deadline > curDate).ToList();
             return Content(JsonConvert.SerializeObject(overdueGoals, SerializationBinderHelper.Settings));
