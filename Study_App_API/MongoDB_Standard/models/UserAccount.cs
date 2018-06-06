@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MongoDB_Standard.models {
+namespace StudyApp.Assets.Models {
 
     public class UserAccount {
 

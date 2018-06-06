@@ -7,7 +7,10 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 
-using MongoDB_Standard.models;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+
+using StudyApp.Assets.Models;
 using Study_App_API.MongoDB_Commands;
 
 namespace Study_App_API.Controllers {
@@ -26,10 +29,10 @@ namespace Study_App_API.Controllers {
         }
 
         [System.Web.Mvc.HttpPost]
-        public JsonResult CreateAccount([FromBody] UserAccount user, string password) {
+        public ContentResult CreateAccount([FromBody] UserAccount user, string password) {
             var (hashedPassword, salt) = EncryptPassword(password); 
             serverInterface.CreateUser(user, hashedPassword, salt);
-            return Json(user);
+            return SerializeUser(user);
         }
 
         [System.Web.Mvc.Route("doesuserexist/{username}")]
@@ -39,13 +42,22 @@ namespace Study_App_API.Controllers {
         }
 
         [System.Web.Mvc.HttpGet]
-        public JsonResult GetUser(string username) {
-            return Json(serverInterface.GetUser(username), JsonRequestBehavior.AllowGet);
+        public ContentResult GetUser(string username) {
+            return SerializeUser(serverInterface.GetUser(username));
         }
 
         [System.Web.Mvc.HttpPost]
         public void AddPoints(string username, int pointsToAdd) {
             throw new NotImplementedException();
+        }
+
+        private ContentResult SerializeUser(UserAccount user) {
+            JsonSerializerSettings settings = new JsonSerializerSettings {
+                TypeNameHandling = TypeNameHandling.Objects,
+                Formatting = Formatting.Indented,
+                SerializationBinder = new SerializationBinderHelper()
+            };
+            return Content(JsonConvert.SerializeObject(user, settings), "application/json");
         }
 
         private byte[] CreateSalt(int size = 10) {

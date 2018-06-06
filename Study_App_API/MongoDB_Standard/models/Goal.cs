@@ -5,10 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MongoDB_Standard.models {
-
-    [BsonIgnoreExtraElements]
-    public class Goal {
+namespace StudyApp.Assets.Models {
+    
+    public abstract class Goal {
 
         [BsonId]
         public string GUID { get; set; }

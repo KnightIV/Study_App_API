@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MongoDB_Standard.models {
+namespace StudyApp.Assets.Models {
 
     public class NonRecurringGoal : Goal { }
 }

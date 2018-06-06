@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 
-using MongoDB_Standard.models;
+using StudyApp.Assets.Models;
 using Study_App_API.MongoDB_Commands;
 
 namespace Study_App_API.Controllers {

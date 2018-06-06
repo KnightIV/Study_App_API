@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-
+using Newtonsoft.Json;
 using Study_App_API.MongoDB_Commands;
-using MongoDB_Standard.models;
+using StudyApp.Assets.Models;
 
 namespace Study_App_API.Controllers {
 
@@ -25,7 +25,7 @@ namespace Study_App_API.Controllers {
 
         // TODO: test if this works, not 100% sure
         [HttpGet]
-        public JsonResult GetMonth(string username, int monthOfYear) {
+        public ActionResult GetMonth(string username, int monthOfYear) {
             Month month = new Month {
                 Days = new List<Day>(),
                 MonthOfYear = monthOfYear
@@ -72,7 +72,7 @@ namespace Study_App_API.Controllers {
                 }
             }
 
-            return Json(month, JsonRequestBehavior.AllowGet);
+            return Content(JsonConvert.SerializeObject(month, SerializationBinderHelper.Settings));
         }
 
         private Dictionary<Goal, DateTime> GetApplicableMonthRecurringGoals(int curMonth, UserAccount user) {

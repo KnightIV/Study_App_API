@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MongoDB_Standard.models {
+namespace StudyApp.Assets.Models {
     [BsonIgnoreExtraElements]
     public class File {
 
@@ -16,6 +16,6 @@ namespace MongoDB_Standard.models {
         public Dictionary<string, Permission> Users { get; set; }
         public byte[] Content { get; set; }
 
-        public static implicit operator FileMini(File f) => new FileMini() { GUID = f.GUID, Extension = f.Extension, Name = f.Name };
+        public static implicit operator FileMini(File f) => new FileMini { GUID = f.GUID, Extension = f.Extension, Name = f.Name, Size = f.Content.Length };
     }
 }
