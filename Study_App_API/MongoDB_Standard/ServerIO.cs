@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Timers;
 using System.Data.SqlClient;
-using MongoDB_Standard.models;
+using StudyApp.Assets.Models;
 using System.Threading.Tasks;
 
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Driver.Linq;
+using StudyApp.Assets.Models;
 
 
 namespace Study_App_API.MongoDB_Commands
@@ -18,13 +19,13 @@ namespace Study_App_API.MongoDB_Commands
     public class ServerIO
     {
 
-        const string USER_COLLECTION = "UserAccount";
-        const string NOTE_COLLECTION = "Note";
-        const string FILE_COLLECTION = "File";
-        const string LOGIN_COLLECTION = "Login";
-
-        const string MONGO_CONNECTION_STRING = "mongodb://127.0.0.1:27017";
-        const string MONGO_DATABASE = "Mongo_Study_App";
+        private const string USER_COLLECTION = "UserAccount";
+        private const string NOTE_COLLECTION = "Note";
+        private const string FILE_COLLECTION = "File";
+        private const string LOGIN_COLLECTION = "Login";
+        
+        private const string MONGO_CONNECTION_STRING = "mongodb://127.0.0.1:27017";
+        private const string MONGO_DATABASE = "Mongo_Study_App";
 
 
         public LoginUser GetLoginUser(string username)
@@ -129,10 +130,6 @@ namespace Study_App_API.MongoDB_Commands
 
                         listOfNotes.Add(n);
 
-                    }
-                    else
-                    {
-                        
                     }
                 }
             }
@@ -451,21 +448,18 @@ namespace Study_App_API.MongoDB_Commands
         }
 
         public void CreateGoal(Goal goal, string username)
-
         {
-            UserAccount account = GetUser(username);
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", username);
             BsonDocument user = userCollection.Find(getUserFilter).First();
 
-
             BsonType typeOfGoal = user["ListOfGoals"].BsonType;
             List<Goal> listOfGoals = new List<Goal>();
+            string guid = goal.GUID ?? Guid.NewGuid().ToString();
             if (typeOfGoal != BsonType.Null)
             {
                 var userGoalsList = user["ListOfGoals"].AsBsonArray;
                 
-
                 foreach (var element in userGoalsList)
                 {
                     Goal g = null;
@@ -478,12 +472,19 @@ namespace Study_App_API.MongoDB_Commands
                     {
                         g = BsonSerializer.Deserialize<RecurringGoal>(element.ToJson());
                     }
+
+                    if (g.GUID == guid) {
+                        guid = Guid.NewGuid().ToString();
+                    }
                     listOfGoals.Add(g);
                 }
+
+                goal.GUID = guid;
                 listOfGoals.Add(goal);
             }
             else
             {
+                goal.GUID = guid;
                 listOfGoals.Add(goal);
             }
 
@@ -637,7 +638,6 @@ namespace Study_App_API.MongoDB_Commands
 
         public UserAccount GetUser(string userName)
         {
-            
             IMongoCollection<BsonDocument> userCollection = GetCollection(USER_COLLECTION);
             FilterDefinition<BsonDocument> getUserFilter = Builders<BsonDocument>.Filter.Eq("_id", userName);
             var userFirst = userCollection.Find(getUserFilter);
@@ -686,18 +686,23 @@ namespace Study_App_API.MongoDB_Commands
             return userAccount;
         }
 
-        private bool checkIfGoalIsUpcoming(DateTime deadline)
-        {
-            if (deadline < DateTime.Now)
-            {
-                return false;
-            }
-            else if (deadline == DateTime.Now)
-            {
-                return true;
-            }
-            return true;
+        //private bool CheckIfGoalIsUpcoming(DateTime deadline)
+        //{
+        //    if (deadline < DateTime.Now)
+        //    {
+        //        return false;
+        //    }
+        //    else if (deadline == DateTime.Now)
+        //    {
+        //        return true;
+        //    }
+        //    return true;
+        //}
+
+        private bool CheckIfGoalIsUpcoming(Goal g, DateTime startDate) {
+            return !(g.Completed || g.Hidden) && (g.Deadline > startDate || g is RecurringGoal);
         }
+
         public List<Goal> GetUpcomingGoals(string username, DateTime dateTime)
         {
             UserAccount grabbedUser = GetUser(username);
@@ -713,8 +718,7 @@ namespace Study_App_API.MongoDB_Commands
                     
                     foreach (Goal eachGoal in listOfGoals)
                     {
-                        DateTime goalDeadline = eachGoal.Deadline;
-                        bool validUpcomingGoal = checkIfGoalIsUpcoming(goalDeadline);
+                        bool validUpcomingGoal = CheckIfGoalIsUpcoming(eachGoal, dateTime);
                         
 
                         if (validUpcomingGoal == true)
